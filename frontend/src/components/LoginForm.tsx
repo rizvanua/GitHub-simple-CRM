@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -15,13 +16,16 @@ interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>();
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      await login(data.email, data.password);
-      toast.success('Login successful!');
+      await login(data.email, data.password, () => {
+        toast.success('Login successful!');
+        navigate('/', { replace: true });
+      });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Login failed');
     } finally {

@@ -8,9 +8,9 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  login: (email: string, password: string, onSuccess?: () => void) => Promise<void>;
+  register: (email: string, password: string, onSuccess?: () => void) => Promise<void>;
+  logout: (onSuccess?: () => void) => void;
   loading: boolean;
 }
 
@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(false);
   }, [token]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, onSuccess?: () => void) => {
     try {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
@@ -64,12 +64,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(data.data.token);
       localStorage.setItem('user', JSON.stringify(data.data.user));
       localStorage.setItem('token', data.data.token);
+      
+      // Call success callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       throw error;
     }
   };
 
-  const register = async (email: string, password: string) => {
+  const register = async (email: string, password: string, onSuccess?: () => void) => {
     try {
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
@@ -89,16 +94,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(data.data.token);
       localStorage.setItem('user', JSON.stringify(data.data.user));
       localStorage.setItem('token', data.data.token);
+      
+      // Call success callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       throw error;
     }
   };
 
-  const logout = () => {
+  const logout = (onSuccess?: () => void) => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    
+    // Call success callback if provided
+    if (onSuccess) {
+      onSuccess();
+    }
   };
 
   const value = {

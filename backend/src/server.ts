@@ -2,21 +2,24 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import mongoose from 'mongoose';
-import { Pool } from 'pg';
 import authRoutes, { setUserModel as setAuthUserModel } from './routes/auth';
 import projectRoutes from './routes/projects';
 import githubRoutes from './routes/github';
 import { UserModel } from './models/User';
 import { setUserModel as setAuthMiddlewareUserModel } from './middleware/auth';
-// Define types locally for now to avoid import issues
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
+import { 
+  connectMongoDB, 
+  disconnectMongoDB, 
+  getMongoDBStatus,
+  connectPostgreSQL, 
+  disconnectPostgreSQL, 
+  getPostgreSQLStatus,
+  getPostgresPool,
+  environment,
+  databaseConfig
+} from './db-connectors';
 
+// Define types locally for now to avoid import issues
 interface HealthCheck {
   status: 'healthy' | 'unhealthy';
   mongodb: boolean;
@@ -29,31 +32,6 @@ interface AppError extends Error {
   isOperational: boolean;
 }
 
-interface Environment {
-  NODE_ENV: 'development' | 'production' | 'test';
-  PORT: number;
-  MONGODB_URI: string;
-  POSTGRES_URI: string;
-  JWT_SECRET: string;
-}
-
-interface DatabaseConfig {
-  mongodb: {
-    uri: string;
-    options?: {
-      useNewUrlParser?: boolean;
-      useUnifiedTopology?: boolean;
-    };
-  };
-  postgresql: {
-    host: string;
-    port: number;
-    database: string;
-    username: string;
-    password: string;
-  };
-}
-
 const API_ENDPOINTS = {
   HEALTH: '/health',
   AUTH: '/api/auth',
@@ -62,34 +40,7 @@ const API_ENDPOINTS = {
 } as const;
 
 const app = express();
-const PORT = process.env['PORT'] || 5000;
-
-// Environment configuration
-const environment: Environment = {
-  NODE_ENV: (process.env['NODE_ENV'] as 'development' | 'production' | 'test') || 'development',
-  PORT: parseInt(process.env['PORT'] || '5000', 10),
-  MONGODB_URI: process.env['MONGODB_URI'] || 'mongodb://admin:password123@mongodb:27017/crm?authSource=admin',
-  POSTGRES_URI: process.env['POSTGRES_URI'] || 'postgresql://admin:password123@postgresql:5432/crm',
-  JWT_SECRET: process.env['JWT_SECRET'] || 'your-super-secret-jwt-key-change-in-production'
-};
-
-// Database configuration
-const databaseConfig: DatabaseConfig = {
-  mongodb: {
-    uri: environment.MONGODB_URI,
-    options: {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }
-  },
-  postgresql: {
-    host: 'postgresql',
-    port: 5432,
-    database: 'crm',
-    username: 'admin',
-    password: 'password123'
-  }
-};
+const PORT = environment.PORT;
 
 // Middleware
 app.use(helmet());
@@ -103,35 +54,6 @@ app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// MongoDB Connection
-const connectMongoDB = async (): Promise<void> => {
-  try {
-    await mongoose.connect(databaseConfig.mongodb.uri);
-    console.log('✅ MongoDB connected successfully');
-  } catch (error) {
-    console.error('❌ MongoDB connection error:', error);
-    process.exit(1);
-  }
-};
-
-// PostgreSQL Connection
-const postgresPool = new Pool({
-  connectionString: environment.POSTGRES_URI,
-});
-
-// Initialize UserModel
-const userModel = new UserModel(postgresPool);
-
-const connectPostgreSQL = async (): Promise<void> => {
-  try {
-    await postgresPool.connect();
-    console.log('✅ PostgreSQL connected successfully');
-  } catch (error) {
-    console.error('❌ PostgreSQL connection error:', error);
-    process.exit(1);
-  }
-};
-
 // Error handling middleware
 const errorHandler = (err: AppError, _req: Request, res: Response, _next: NextFunction): void => {
   console.error(err.stack);
@@ -141,46 +63,18 @@ const errorHandler = (err: AppError, _req: Request, res: Response, _next: NextFu
   });
 };
 
-// Basic Routes
-app.get('/', (_req: Request, res: Response) => {
-  const response: ApiResponse<{
-    message: string;
-    status: string;
-    timestamp: string;
-    databases: {
-      mongodb: string;
-      postgresql: string;
-    };
-  }> = {
-    success: true,
-    data: {
-      message: 'Welcome to Simple CRM API',
-      status: 'running',
-      timestamp: new Date().toISOString(),
-      databases: {
-        mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-        postgresql: postgresPool.totalCount > 0 ? 'connected' : 'disconnected'
-      }
-    }
-  };
-  res.json(response);
-});
-
+// Health check route
 app.get(API_ENDPOINTS.HEALTH, (_req: Request, res: Response) => {
   const healthCheck: HealthCheck = {
-    status: (mongoose.connection.readyState === 1 && postgresPool.totalCount > 0) ? 'healthy' : 'unhealthy',
-    mongodb: mongoose.connection.readyState === 1,
-    postgresql: postgresPool.totalCount > 0,
+    status: (getMongoDBStatus() && getPostgreSQLStatus()) ? 'healthy' : 'unhealthy',
+    mongodb: getMongoDBStatus(),
+    postgresql: getPostgreSQLStatus(),
     timestamp: new Date().toISOString()
   };
   res.json(healthCheck);
 });
 
 // API Routes - Clean and focused on our current architecture
-
-// Initialize UserModel in auth routes and middleware
-setAuthUserModel(userModel);
-setAuthMiddlewareUserModel(userModel);
 
 // Auth routes
 app.use(API_ENDPOINTS.AUTH, authRoutes);
@@ -205,8 +99,14 @@ app.use(errorHandler);
 // Start server
 const startServer = async (): Promise<void> => {
   try {
-    await connectMongoDB();
-    await connectPostgreSQL();
+    await connectMongoDB(databaseConfig.mongodb);
+    await connectPostgreSQL(databaseConfig.postgresql);
+    
+    // Initialize UserModel after database connections
+    const postgresPool = getPostgresPool();
+    const userModel = new UserModel(postgresPool);
+    setAuthUserModel(userModel);
+    setAuthMiddlewareUserModel(userModel);
     
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
@@ -224,14 +124,14 @@ startServer();
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully');
-  await mongoose.connection.close();
-  await postgresPool.end();
+  await disconnectMongoDB();
+  await disconnectPostgreSQL();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully');
-  await mongoose.connection.close();
-  await postgresPool.end();
+  await disconnectMongoDB();
+  await disconnectPostgreSQL();
   process.exit(0);
 });

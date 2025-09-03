@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -16,14 +17,17 @@ interface RegisterFormProps {
 const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { register: registerUser } = useAuth();
+  const navigate = useNavigate();
   const { register, handleSubmit, watch, formState: { errors } } = useForm<RegisterFormData>();
   const password = watch('password');
 
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      await registerUser(data.email, data.password);
-      toast.success('Registration successful!');
+      await registerUser(data.email, data.password, () => {
+        toast.success('Registration successful!');
+        navigate('/', { replace: true });
+      });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Registration failed');
     } finally {

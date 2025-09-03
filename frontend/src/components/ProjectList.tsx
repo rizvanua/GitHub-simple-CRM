@@ -109,13 +109,7 @@ const ProjectList: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">My GitHub Projects</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-        >
-          Add Project
-        </button>
+        <h1 className="text-3xl font-bold text-gray-900">My GitHub Projects</h1>        
       </div>
 
       {projects.length === 0 ? (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ProjectList from '../components/ProjectList';
 import GitHubRepoForm from '../components/GitHubRepoForm';
@@ -20,6 +21,7 @@ const API_ENDPOINTS = {
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [apiStatus, setApiStatus] = useState<HealthCheck | null>(null);
   const [showGitHubForm, setShowGitHubForm] = useState(false);
 
@@ -37,6 +39,12 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleLogout = () => {
+    logout(() => {
+      navigate('/login', { replace: true });
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Header */}
@@ -49,7 +57,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">Welcome, {user?.email}</span>
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
               >
                 Logout
