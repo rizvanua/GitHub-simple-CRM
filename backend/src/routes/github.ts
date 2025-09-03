@@ -28,7 +28,7 @@ router.post('/', auth, [
     }
 
     const { repoPath } = req.body;
-    const userId = (req.user as IUser)._id;
+    const userId = (req.user as IUser).id;
 
     // Check if repository already exists for this user
     const existingProject = await Project.findOne({ 
@@ -81,7 +81,7 @@ router.post('/', auth, [
 router.get('/check/:repoPath', auth, async (req: any, res: Response) => {
   try {
     const { repoPath } = req.params;
-    const userId = (req.user as IUser)._id;
+    const userId = (req.user as IUser).id;
 
     // Check if repository already exists for this user
     const existingProject = await Project.findOne({ 

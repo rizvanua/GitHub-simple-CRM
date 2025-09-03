@@ -4,9 +4,11 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import { Pool } from 'pg';
-import authRoutes from './routes/auth';
+import authRoutes, { setUserModel as setAuthUserModel } from './routes/auth';
 import projectRoutes from './routes/projects';
 import githubRoutes from './routes/github';
+import { UserModel } from './models/User';
+import { setUserModel as setAuthMiddlewareUserModel } from './middleware/auth';
 // Define types locally for now to avoid import issues
 interface ApiResponse<T> {
   success: boolean;
@@ -120,6 +122,9 @@ const postgresPool = new Pool({
   connectionString: environment.POSTGRES_URI,
 });
 
+// Initialize UserModel
+const userModel = new UserModel(postgresPool);
+
 const connectPostgreSQL = async (): Promise<void> => {
   try {
     await postgresPool.connect();
@@ -208,6 +213,10 @@ app.get(API_ENDPOINTS.ORDERS, async (_req: Request, res: Response) => {
     });
   }
 });
+
+// Initialize UserModel in auth routes and middleware
+setAuthUserModel(userModel);
+setAuthMiddlewareUserModel(userModel);
 
 // Auth routes
 app.use(API_ENDPOINTS.AUTH, authRoutes);

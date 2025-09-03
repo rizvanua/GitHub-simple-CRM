@@ -95,7 +95,7 @@ const ProjectList: React.FC = () => {
   };
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString();
+    return new Date(timestamp).toLocaleDateString();
   };
 
   if (loading) {

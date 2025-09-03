@@ -8,7 +8,7 @@ const router = express.Router();
 // Get all projects for the authenticated user
 router.get('/', auth, async (req: any, res: Response) => {
   try {
-    const projects = await Project.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    const projects = await Project.find({ userId: req.user.id }).sort({ createdAt: -1 });
     return res.json({
       success: true,
       data: projects
@@ -47,7 +47,7 @@ router.post('/', [
 
     // Check if project already exists for this user
     const existingProject = await Project.findOne({ 
-      userId: req.user._id, 
+      userId: req.user.id, 
       name 
     });
     
@@ -66,7 +66,7 @@ router.post('/', [
       forks,
       openIssues,
       createdAt,
-      userId: req.user._id
+      userId: req.user.id
     });
 
     await project.save();
@@ -107,7 +107,7 @@ router.put('/:id', [
 
     const project = await Project.findOne({ 
       _id: req.params.id, 
-      userId: req.user._id 
+      userId: req.user.id 
     });
 
     if (!project) {
@@ -144,7 +144,7 @@ router.delete('/:id', auth, async (req: any, res: Response) => {
   try {
     const project = await Project.findOneAndDelete({ 
       _id: req.params.id, 
-      userId: req.user._id 
+      userId: req.user.id 
     });
 
     if (!project) {

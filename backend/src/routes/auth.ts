@@ -1,9 +1,17 @@
 import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
-import { User, IUser } from '../models/User';
+import { UserModel } from '../models/User';
 
 const router = express.Router();
+
+// Initialize UserModel with PostgreSQL pool
+// This will be set from the server.ts file
+let userModel: UserModel;
+
+export const setUserModel = (model: UserModel) => {
+  userModel = model;
+};
 
 // Register user
 router.post('/register', [
@@ -23,7 +31,7 @@ router.post('/register', [
     const { email, password } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await userModel.findByEmail(email);
     if (existingUser) {
       return res.status(400).json({ 
         success: false, 
@@ -32,12 +40,11 @@ router.post('/register', [
     }
 
     // Create new user
-    const user = new User({ email, password });
-    await user.save();
+    const user = await userModel.create({ email, password });
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user._id },
+      { userId: user.id },
       process.env['JWT_SECRET'] || 'your-super-secret-jwt-key-change-in-production',
       { expiresIn: '7d' }
     );
@@ -46,7 +53,7 @@ router.post('/register', [
       success: true,
       data: {
         user: {
-          id: user._id,
+          id: user.id,
           email: user.email
         },
         token
@@ -79,7 +86,7 @@ router.post('/login', [
     const { email, password } = req.body;
 
     // Find user
-    const user = await User.findOne({ email }) as IUser | null;
+    const user = await userModel.findByEmail(email);
     if (!user) {
       return res.status(400).json({ 
         success: false, 
@@ -88,7 +95,7 @@ router.post('/login', [
     }
 
     // Check password
-    const isMatch = await user['comparePassword'](password);
+    const isMatch = await userModel.comparePassword(password, user.password_hash);
     if (!isMatch) {
       return res.status(400).json({ 
         success: false, 
@@ -98,7 +105,7 @@ router.post('/login', [
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user._id },
+      { userId: user.id },
       process.env['JWT_SECRET'] || 'your-super-secret-jwt-key-change-in-production',
       { expiresIn: '7d' }
     );
@@ -107,7 +114,7 @@ router.post('/login', [
       success: true,
       data: {
         user: {
-          id: user._id,
+          id: user.id,
           email: user.email
         },
         token

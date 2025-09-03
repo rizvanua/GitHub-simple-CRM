@@ -9,7 +9,7 @@ export interface IProject extends Document {
   openIssues: number;
   createdAt: number; // UTC Unix timestamp
   githubPath?: string; // GitHub repository path (e.g., "facebook/react")
-  userId: mongoose.Types.ObjectId;
+  userId: number; // PostgreSQL user ID
   createdAtAt: Date;
   updatedAt: Date;
 }
@@ -59,8 +59,7 @@ const projectSchema = new Schema<IProject>({
     sparse: true
   },
   userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
+    type: Number,
     required: true
   }
 }, {
