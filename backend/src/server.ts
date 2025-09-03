@@ -55,9 +55,6 @@ interface DatabaseConfig {
 }
 
 const API_ENDPOINTS = {
-  CUSTOMERS: '/api/customers',
-  ORDERS: '/api/orders',
-  PRODUCTS: '/api/products',
   HEALTH: '/health',
   AUTH: '/api/auth',
   PROJECTS: '/api/projects',
@@ -179,40 +176,7 @@ app.get(API_ENDPOINTS.HEALTH, (_req: Request, res: Response) => {
   res.json(healthCheck);
 });
 
-// API Routes
-app.get(API_ENDPOINTS.CUSTOMERS, async (_req: Request, res: Response) => {
-  try {
-    // Example: Get customers from MongoDB
-    const response: ApiResponse<{ message: string }> = {
-      success: true,
-      data: { message: 'Customers endpoint - MongoDB integration ready' }
-    };
-    res.json(response);
-  } catch (error) {
-    const err = error as Error;
-    res.status(500).json({ 
-      success: false,
-      error: err.message 
-    });
-  }
-});
-
-app.get(API_ENDPOINTS.ORDERS, async (_req: Request, res: Response) => {
-  try {
-    // Example: Get orders from PostgreSQL
-    const response: ApiResponse<{ message: string }> = {
-      success: true,
-      data: { message: 'Orders endpoint - PostgreSQL integration ready' }
-    };
-    res.json(response);
-  } catch (error) {
-    const err = error as Error;
-    res.status(500).json({ 
-      success: false,
-      error: err.message 
-    });
-  }
-});
+// API Routes - Clean and focused on our current architecture
 
 // Initialize UserModel in auth routes and middleware
 setAuthUserModel(userModel);
