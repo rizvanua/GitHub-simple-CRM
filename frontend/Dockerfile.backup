@@ -14,12 +14,6 @@ COPY tsconfig.json ./
 # Copy Vite configuration
 COPY vite.config.ts ./
 
-# Copy Tailwind CSS configuration
-COPY tailwind.config.js ./
-
-# Copy PostCSS configuration
-COPY postcss.config.js ./
-
 # Copy source code
 COPY src/ ./src/
 COPY public/ ./public/
