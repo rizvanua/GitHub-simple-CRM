@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: crm-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: crm
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    networks:
+      - crm-network
+
+  # PostgreSQL Database
+  postgresql:
+    image: postgres:15
+    container_name: crm-postgresql
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: crm
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    networks:
+      - crm-network
+
+  # ExpressJS Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crm-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/crm?authSource=admin
+      POSTGRES_URI: postgresql://admin:password123@postgresql:5432/crm
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+    ports:
+      - "5001:5000"
+    volumes:
+      - /app/node_modules
+    depends_on:
+      - mongodb
+      - postgresql
+    networks:
+      - crm-network
+
+  # ReactJS Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: crm-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:5001
+      VITE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - crm-network
+
+volumes:
+  mongodb_data:
+    driver: local
+  postgresql_data:
+    driver: local
+
+networks:
+  crm-network:
+    driver: bridge

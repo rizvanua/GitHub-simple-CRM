@@ -1,0 +1,28 @@
+{
+  "name": "simple-crm",
+  "version": "1.0.0",
+  "description": "Simple CRM System with Docker Compose",
+  "private": true,
+  "scripts": {
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose up -d --build",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker-compose down -v && docker system prune -f",
+    "setup": "docker-compose up -d --build",
+    "reset": "docker-compose down -v && docker system prune -f && docker-compose up -d --build"
+  },
+  "keywords": [
+    "crm",
+    "docker",
+    "react",
+    "express",
+    "mongodb",
+    "postgresql"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
