@@ -4,6 +4,9 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import { Pool } from 'pg';
+import authRoutes from './routes/auth';
+import projectRoutes from './routes/projects';
+import githubRoutes from './routes/github';
 // Define types locally for now to avoid import issues
 interface ApiResponse<T> {
   success: boolean;
@@ -54,6 +57,9 @@ const API_ENDPOINTS = {
   ORDERS: '/api/orders',
   PRODUCTS: '/api/products',
   HEALTH: '/health',
+  AUTH: '/api/auth',
+  PROJECTS: '/api/projects',
+  GITHUB: '/api/github',
 } as const;
 
 const app = express();
@@ -202,6 +208,15 @@ app.get(API_ENDPOINTS.ORDERS, async (_req: Request, res: Response) => {
     });
   }
 });
+
+// Auth routes
+app.use(API_ENDPOINTS.AUTH, authRoutes);
+
+// Project routes
+app.use(API_ENDPOINTS.PROJECTS, projectRoutes);
+
+// GitHub routes
+app.use(API_ENDPOINTS.GITHUB, githubRoutes);
 
 // 404 handler
 app.use('*', (_req: Request, res: Response) => {
