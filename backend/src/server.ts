@@ -1,12 +1,12 @@
-import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
+import express, { Request, Response } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import authRoutes, { setUserModel as setAuthUserModel } from './routes/auth';
-import projectRoutes from './routes/projects';
-import githubRoutes from './routes/github';
+import { setUserModel as setAuthUserModel } from './routes/auth';
+import { useEndpoints } from './routes';
 import { UserModel } from './models/User';
 import { setUserModel as setAuthMiddlewareUserModel } from './middleware/auth';
+import { errorHandler } from './middleware/errorHandler';
+import { corsMiddleware } from './middleware/cors';
 import { 
   connectMongoDB, 
   disconnectMongoDB, 
@@ -27,44 +27,20 @@ interface HealthCheck {
   timestamp?: string;
 }
 
-interface AppError extends Error {
-  statusCode: number;
-  isOperational: boolean;
-}
-
-const API_ENDPOINTS = {
-  HEALTH: '/health',
-  AUTH: '/api/auth',
-  PROJECTS: '/api/projects',
-  GITHUB: '/api/github',
-} as const;
-
 const app = express();
 const PORT = environment.PORT;
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(corsMiddleware);
 app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Error handling middleware
-const errorHandler = (err: AppError, _req: Request, res: Response, _next: NextFunction): void => {
-  console.error(err.stack);
-  res.status(err.statusCode || 500).json({ 
-    success: false,
-    error: err.message || 'Something went wrong!' 
-  });
-};
+
 
 // Health check route
-app.get(API_ENDPOINTS.HEALTH, (_req: Request, res: Response) => {
+app.get('/health', (_req: Request, res: Response) => {
   const healthCheck: HealthCheck = {
     status: (getMongoDBStatus() && getPostgreSQLStatus()) ? 'healthy' : 'unhealthy',
     mongodb: getMongoDBStatus(),
@@ -75,15 +51,7 @@ app.get(API_ENDPOINTS.HEALTH, (_req: Request, res: Response) => {
 });
 
 // API Routes - Clean and focused on our current architecture
-
-// Auth routes
-app.use(API_ENDPOINTS.AUTH, authRoutes);
-
-// Project routes
-app.use(API_ENDPOINTS.PROJECTS, projectRoutes);
-
-// GitHub routes
-app.use(API_ENDPOINTS.GITHUB, githubRoutes);
+useEndpoints(app);
 
 // 404 handler
 app.use('*', (_req: Request, res: Response) => {
