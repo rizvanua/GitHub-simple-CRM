@@ -1,15 +1,15 @@
-# Simple CRM - Docker Compose
+# GitHub Simple CRM
 
-A complete Customer Relationship Management (CRM) system built with modern technologies and containerized with Docker Compose.
+A modern Customer Relationship Management (CRM) system with GitHub integration, built with TypeScript, React, and Express.js, containerized with Docker Compose.
 
 ## 🚀 Tech Stack
 
 - **Frontend**: React.js with TypeScript, Vite & Tailwind CSS
 - **Backend**: Express.js with TypeScript (Node.js)
-- **Databases**: MongoDB & PostgreSQL
+- **Databases**: MongoDB (for projects) & PostgreSQL (for users)
 - **Containerization**: Docker & Docker Compose
-- **Language**: TypeScript
-- **Build Tool**: Vite
+- **Authentication**: JWT with bcrypt
+- **GitHub Integration**: GitHub API for repository management
 
 ## 📋 Prerequisites
 
@@ -30,9 +30,9 @@ A complete Customer Relationship Management (CRM) system built with modern techn
    docker-compose up -d
    ```
 
-4. **Access the applications**
+3. **Access the applications**
    - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000
+   - Backend API: http://localhost:5001
    - MongoDB: localhost:27017
    - PostgreSQL: localhost:5432
 
@@ -41,25 +41,92 @@ A complete Customer Relationship Management (CRM) system built with modern techn
 ```
 GitHub-simple-CRM/
 ├── docker-compose.yml          # Main Docker Compose configuration
-├── package.json                # Root package.json with Docker scripts
-├── backend/                   # Express.js API
+├── README.md                   # This file
+├── backend/                    # Express.js API with TypeScript
 │   ├── Dockerfile
 │   ├── package.json
 │   ├── tsconfig.json
 │   └── src/
-├── frontend/                  # React.js application
+│       ├── server.ts           # Main server entry point
+│       ├── db-connectors/      # Database connection modules
+│       │   ├── index.ts
+│       │   ├── config.ts
+│       │   ├── mongodb.ts
+│       │   ├── postgresql.ts
+│       │   └── README.md
+│       ├── middleware/         # Express middleware
+│       │   ├── auth.ts
+│       │   ├── cors.ts
+│       │   ├── errorHandler.ts
+│       │   └── README.md
+│       ├── models/             # Data models
+│       │   ├── User.ts         # PostgreSQL User model
+│       │   └── Project.ts      # MongoDB Project model
+│       ├── routes/             # API route handlers
+│       │   ├── index.ts        # Route registration
+│       │   ├── auth.ts         # Authentication routes
+│       │   ├── projects.ts     # Project management routes
+│       │   ├── github.ts       # GitHub integration routes
+│       │   └── README.md
+│       └── services/           # Business logic services
+│           └── githubService.ts
+├── frontend/                   # React.js application
 │   ├── Dockerfile
-│   ├── Dockerfile.dev
 │   ├── package.json
 │   ├── tsconfig.json
 │   ├── vite.config.ts
+│   ├── tailwind.config.js
+│   ├── postcss.config.js
+│   ├── index.html
 │   ├── public/
+│   │   ├── manifest.json
+│   │   └── icon.svg
 │   └── src/
-├── mongo-init/               # MongoDB initialization scripts
+│       ├── index.tsx           # App entry point
+│       ├── App.tsx             # Main app component
+│       ├── AppRoutes.tsx       # Route configuration
+│       ├── contexts/           # React contexts
+│       │   └── AuthContext.tsx
+│       ├── pages/              # Page components
+│       │   ├── AuthPage.tsx
+│       │   └── Dashboard.tsx
+│       ├── components/         # Reusable components
+│       │   ├── LoginForm.tsx
+│       │   ├── RegisterForm.tsx
+│       │   ├── ProjectList.tsx
+│       │   ├── ProjectForm.tsx
+│       │   └── GitHubRepoForm.tsx
+│       └── vite-env.d.ts
+├── mongo-init/                 # MongoDB initialization scripts
 │   └── init.js
-└── postgres-init/            # PostgreSQL initialization scripts
+└── postgres-init/              # PostgreSQL initialization scripts
     └── 01-init.sql
 ```
+
+## 🎯 Features
+
+### 🔐 Authentication System
+- User registration and login
+- JWT token-based authentication
+- Password hashing with bcrypt
+- Protected routes
+
+### 📊 Project Management
+- Create, read, update, delete projects
+- User-specific project filtering
+- Project metadata storage
+
+### 🔗 GitHub Integration
+- Add GitHub repositories by path (e.g., "facebook/react")
+- Fetch repository data from GitHub API
+- Store repository metadata (stars, forks, issues, etc.)
+- Repository existence validation
+
+### 🎨 Modern UI/UX
+- Clean, minimalistic design with Tailwind CSS
+- Responsive layout
+- Real-time notifications with react-hot-toast
+- Form validation with react-hook-form
 
 ## 🎯 Project Commands
 
@@ -103,10 +170,6 @@ docker-compose build frontend
 # Restart specific service
 docker-compose restart backend
 docker-compose restart frontend
-
-# Execute commands in containers
-docker-compose exec backend npm run lint
-docker-compose exec frontend npm run build
 ```
 
 ## 🔧 Services Configuration
@@ -116,71 +179,50 @@ docker-compose exec frontend npm run build
 - **Database**: crm
 - **Username**: admin
 - **Password**: password123
-- **Features**: 
-  - Collections: customers, orders, products
-  - Sample data included
-  - Indexes for performance
+- **Purpose**: Stores project data and GitHub repository information
 
 ### PostgreSQL
 - **Port**: 5432
 - **Database**: crm
 - **Username**: admin
 - **Password**: password123
-- **Features**:
-  - Tables: customers, orders, order_items
-  - Foreign key relationships
-  - Triggers for updated_at timestamps
-  - Sample data included
+- **Purpose**: Stores user authentication data
 
 ### Express.js Backend (TypeScript)
-- **Port**: 5000
+- **Port**: 5001 (changed from 5000 to avoid conflicts)
 - **Features**:
-  - RESTful API endpoints with TypeScript
-  - MongoDB & PostgreSQL connections
-  - CORS enabled
-  - Security middleware (helmet)
-  - Request logging (morgan)
-  - Uses shared packages for types and utilities
-  - ESLint with TypeScript rules
-  - Strict type checking
+  - Modular architecture with separated concerns
+  - Database connectors for MongoDB and PostgreSQL
+  - Middleware for CORS, authentication, and error handling
+  - Centralized route registration
+  - GitHub API integration
+  - JWT authentication
+  - TypeScript with strict type checking
 
 ### React.js Frontend (TypeScript + Vite)
 - **Port**: 3000
 - **Features**:
   - Modern UI with Tailwind CSS
-  - Real-time database status monitoring
+  - Authentication flow with protected routes
+  - Project management interface
+  - GitHub repository integration
+  - Real-time notifications
+  - Form validation
   - Responsive design
-  - API integration with TypeScript
-  - Uses shared packages for types and utilities
-  - ESLint with TypeScript and React rules
-  - Strict type checking
-  - Lightning-fast development with Vite
   - Hot Module Replacement (HMR)
-  - Optimized production builds
-
-## 📦 Container Structure
-
-### Backend Container
-- Express.js API with TypeScript
-- MongoDB and PostgreSQL connections
-- RESTful endpoints
-- Security middleware
-- Hot reloading with nodemon
-
-### Frontend Container
-- React.js with TypeScript and Vite
-- Modern UI with Tailwind CSS
-- Real-time database status monitoring
-- Hot Module Replacement (HMR)
-- Optimized production builds
 
 ## 🎯 Available Endpoints
 
 ### Backend API
-- `GET /` - API welcome message
 - `GET /health` - Health check with database status
-- `GET /api/customers` - Get customers (MongoDB)
-- `GET /api/orders` - Get orders (PostgreSQL)
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/projects` - Get user's projects
+- `POST /api/projects` - Create new project
+- `PUT /api/projects/:id` - Update project
+- `DELETE /api/projects/:id` - Delete project
+- `GET /api/github/check/:repoPath` - Check if GitHub repository exists
+- `POST /api/github` - Add GitHub repository to projects
 
 ## 🐳 Docker Commands
 
@@ -229,8 +271,8 @@ use crm
 # List collections
 show collections
 
-# Query customers
-db.customers.find()
+# Query projects
+db.projects.find()
 ```
 
 ### PostgreSQL
@@ -241,8 +283,8 @@ docker exec -it crm-postgresql psql -U admin -d crm
 # List tables
 \dt
 
-# Query customers
-SELECT * FROM customers;
+# Query users
+SELECT * FROM users;
 ```
 
 ## 🛡️ Security Notes
@@ -255,6 +297,7 @@ SELECT * FROM customers;
 4. Implement proper authentication
 5. Use secrets management
 6. Configure firewall rules
+7. Set up proper CORS configuration
 
 ## 🔧 Development
 
@@ -282,9 +325,10 @@ POSTGRES_PASSWORD=your_password
 # Backend
 JWT_SECRET=your_jwt_secret
 NODE_ENV=production
+PORT=5001
 
 # Frontend (Vite)
-VITE_API_URL=http://your-api-domain:5000
+VITE_API_URL=http://your-api-domain:5001
 VITE_ENV=production
 ```
 
@@ -292,7 +336,7 @@ VITE_ENV=production
 
 ### Common Issues
 
-1. **Port conflicts**: Ensure ports 3000, 5000, 27017, and 5432 are available
+1. **Port conflicts**: Ensure ports 3000, 5001, 27017, and 5432 are available
 2. **Permission issues**: Run with `sudo` if needed
 3. **Database connection errors**: Check if databases are fully initialized
 4. **Frontend not loading**: Check if backend is running and accessible
@@ -310,12 +354,14 @@ docker system prune -a
 docker-compose up -d --build
 ```
 
-## 📊 Monitoring
+## 📊 System Architecture
 
-The frontend includes a real-time dashboard showing:
-- Database connection status
-- System information
-- Quick action buttons
+The application follows a modular architecture:
+
+- **Database Layer**: Hybrid approach with MongoDB for projects and PostgreSQL for users
+- **Backend Layer**: Modular Express.js with separated concerns (routes, middleware, models, services)
+- **Frontend Layer**: React.js with TypeScript, organized by features (pages, components, contexts)
+- **Container Layer**: Docker Compose for easy deployment and development
 
 ## 🤝 Contributing
 
