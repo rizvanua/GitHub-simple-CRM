@@ -9,6 +9,7 @@ middleware/
 ├── auth.ts           # Authentication middleware
 ├── cors.ts           # CORS configuration middleware
 ├── errorHandler.ts   # Global error handling middleware
+├── notFound.ts       # 404 Not Found middleware
 └── README.md         # This file
 ```
 
@@ -87,6 +88,35 @@ import { errorHandler } from './middleware/errorHandler';
 app.use(errorHandler);
 ```
 
+## 404 Not Found Middleware (`notFound.ts`)
+
+### Purpose
+Handles requests to routes that don't exist in the application.
+
+### Functions
+- `notFoundHandler` - 404 handler function
+
+### Features
+- Returns consistent 404 response format
+- Must be placed after all route definitions
+- Provides clear error message for missing routes
+
+### Response Format
+```json
+{
+  "success": false,
+  "error": "Route not found"
+}
+```
+
+### Usage
+```typescript
+import { notFoundHandler } from './middleware/notFound';
+
+// Apply after all routes but before error handler
+app.use('*', notFoundHandler);
+```
+
 ## Benefits
 
 1. **Separation of Concerns**: Each middleware handles a specific cross-cutting concern
@@ -99,9 +129,20 @@ app.use(errorHandler);
 
 ## Best Practices
 
-1. **Order Matters**: Apply middleware in the correct order (CORS → auth → routes → error handler)
+1. **Order Matters**: Apply middleware in the correct order (CORS → auth → routes → 404 → error handler)
 2. **Error Handling**: Always use the global error handler as the final middleware
 3. **Authentication**: Apply auth middleware to all protected routes
 4. **CORS**: Apply CORS middleware early in the middleware chain
-5. **Dependency Injection**: Use setter functions for dependency injection when needed
-6. **Environment Configuration**: Use appropriate CORS configuration for each environment
+5. **404 Handler**: Apply 404 handler after all routes but before error handler
+6. **Dependency Injection**: Use setter functions for dependency injection when needed
+7. **Environment Configuration**: Use appropriate CORS configuration for each environment
+
+## Middleware Order
+
+The correct order for applying middleware is:
+
+1. **CORS** - Handle cross-origin requests
+2. **Authentication** - Validate user tokens for protected routes
+3. **Routes** - Application route handlers
+4. **404 Handler** - Handle non-existent routes
+5. **Error Handler** - Handle all errors (must be last)

@@ -1,31 +1,22 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { setUserModel as setAuthUserModel } from './routes/auth';
 import { useEndpoints } from './routes';
+import { healthCheckHandler } from './routes/health';
 import { UserModel } from './models/User';
 import { setUserModel as setAuthMiddlewareUserModel } from './middleware/auth';
 import { errorHandler } from './middleware/errorHandler';
 import { corsMiddleware } from './middleware/cors';
+import { notFoundHandler } from './middleware/notFound';
 import { 
   connectMongoDB, 
-  disconnectMongoDB, 
-  getMongoDBStatus,
   connectPostgreSQL, 
-  disconnectPostgreSQL, 
-  getPostgreSQLStatus,
   getPostgresPool,
   environment,
   databaseConfig
 } from './db-connectors';
-
-// Define types locally for now to avoid import issues
-interface HealthCheck {
-  status: 'healthy' | 'unhealthy';
-  mongodb: boolean;
-  postgresql: boolean;
-  timestamp?: string;
-}
+import { setupGracefulShutdown } from './utils/gracefulShutdown';
 
 const app = express();
 const PORT = environment.PORT;
@@ -39,38 +30,22 @@ app.use(express.urlencoded({ extended: true }));
 
 
 
-// Health check route
-app.get('/health', (_req: Request, res: Response) => {
-  const healthCheck: HealthCheck = {
-    status: (getMongoDBStatus() && getPostgreSQLStatus()) ? 'healthy' : 'unhealthy',
-    mongodb: getMongoDBStatus(),
-    postgresql: getPostgreSQLStatus(),
-    timestamp: new Date().toISOString()
-  };
-  res.json(healthCheck);
-});
+// NOTE: Health check route we use just for self testing purposes
+app.get('/health', healthCheckHandler);
 
-// API Routes - Clean and focused on our current architecture
 useEndpoints(app);
 
-// 404 handler
-app.use('*', (_req: Request, res: Response) => {
-  res.status(404).json({ 
-    success: false,
-    error: 'Route not found' 
-  });
-});
+// IMPORTANT: 404 handler - must be after all routes
+app.use('*', notFoundHandler);
 
-// Apply error handling middleware
+// IMPORTANT:Error handler - must be last
 app.use(errorHandler);
 
-// Start server
 const startServer = async (): Promise<void> => {
   try {
     await connectMongoDB(databaseConfig.mongodb);
     await connectPostgreSQL(databaseConfig.postgresql);
     
-    // Initialize UserModel after database connections
     const postgresPool = getPostgresPool();
     const userModel = new UserModel(postgresPool);
     setAuthUserModel(userModel);
@@ -89,17 +64,5 @@ const startServer = async (): Promise<void> => {
 
 startServer();
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully');
-  await disconnectMongoDB();
-  await disconnectPostgreSQL();
-  process.exit(0);
-});
-
-process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down gracefully');
-  await disconnectMongoDB();
-  await disconnectPostgreSQL();
-  process.exit(0);
-});
+// Setup graceful shutdown handlers
+setupGracefulShutdown();

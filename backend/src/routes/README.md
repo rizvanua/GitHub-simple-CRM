@@ -8,6 +8,7 @@ This directory contains Express.js route handlers organized by feature.
 routes/
 ├── index.ts        # Route registration and configuration
 ├── auth.ts         # Authentication routes (login, register)
+├── health.ts       # Health check route
 ├── projects.ts     # Project management routes (CRUD)
 ├── github.ts       # GitHub integration routes
 └── README.md       # This file
@@ -37,6 +38,32 @@ import { useEndpoints } from './routes';
 // Register all routes
 useEndpoints(app);
 ```
+
+## Health Check Route (`health.ts`)
+
+### Purpose
+Provides system health status and database connection monitoring.
+
+### Functions
+- `healthCheckHandler` - Returns health status of database connections
+
+### Endpoints
+- `GET /health` - Get system health status
+
+### Response Format
+```json
+{
+  "status": "healthy",
+  "mongodb": true,
+  "postgresql": true,
+  "timestamp": "2025-09-04T07:09:15.838Z"
+}
+```
+
+### Features
+- Database connection status monitoring
+- Real-time health checks
+- Timestamp for monitoring purposes
 
 ## Authentication Routes (`auth.ts`)
 
@@ -84,6 +111,7 @@ useEndpoints(app);
 4. **Consistency**: Standardized route structure across the application
 5. **Type Safety**: Full TypeScript support with proper interfaces
 6. **Scalability**: Easy to add new route modules
+7. **Health Monitoring**: Built-in system health monitoring
 
 ## Best Practices
 
@@ -93,3 +121,4 @@ useEndpoints(app);
 4. **Error Handling**: Consistent error responses across all routes
 5. **Documentation**: Document complex route logic
 6. **Testing**: Test each route module independently
+7. **Health Monitoring**: Use health check for system monitoring
