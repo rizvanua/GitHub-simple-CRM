@@ -58,6 +58,7 @@ GitHub-simple-CRM/
 │       │   ├── auth.ts
 │       │   ├── cors.ts
 │       │   ├── errorHandler.ts
+│       │   ├── notFound.ts
 │       │   └── README.md
 │       ├── models/             # Data models
 │       │   ├── User.ts         # PostgreSQL User model
@@ -65,11 +66,14 @@ GitHub-simple-CRM/
 │       ├── routes/             # API route handlers
 │       │   ├── index.ts        # Route registration
 │       │   ├── auth.ts         # Authentication routes
+│       │   ├── health.ts       # Health check route
 │       │   ├── projects.ts     # Project management routes
 │       │   ├── github.ts       # GitHub integration routes
 │       │   └── README.md
-│       └── services/           # Business logic services
-│           └── githubService.ts
+│       ├── services/           # Business logic services
+│       │   └── githubService.ts
+│       └── utils/              # Utility functions
+│           └── gracefulShutdown.ts
 ├── frontend/                   # React.js application
 │   ├── Dockerfile
 │   ├── package.json
@@ -84,7 +88,6 @@ GitHub-simple-CRM/
 │   └── src/
 │       ├── index.tsx           # App entry point
 │       ├── App.tsx             # Main app component
-│       ├── AppRoutes.tsx       # Route configuration
 │       ├── contexts/           # React contexts
 │       │   └── AuthContext.tsx
 │       ├── pages/              # Page components
@@ -95,7 +98,9 @@ GitHub-simple-CRM/
 │       │   ├── RegisterForm.tsx
 │       │   ├── ProjectList.tsx
 │       │   ├── ProjectForm.tsx
-│       │   └── GitHubRepoForm.tsx
+│       │   ├── GitHubRepoForm.tsx
+│       │   ├── NavigationHeader.tsx
+│       │   └── SystemHealthStatus.tsx
 │       └── vite-env.d.ts
 ├── mongo-init/                 # MongoDB initialization scripts
 │   └── init.js
@@ -192,10 +197,12 @@ docker-compose restart frontend
 - **Features**:
   - Modular architecture with separated concerns
   - Database connectors for MongoDB and PostgreSQL
-  - Middleware for CORS, authentication, and error handling
+  - Middleware for CORS, authentication, error handling, and 404 handling
   - Centralized route registration
+  - Health check endpoint for system monitoring
   - GitHub API integration
   - JWT authentication
+  - Graceful shutdown handling
   - TypeScript with strict type checking
 
 ### React.js Frontend (TypeScript + Vite)
@@ -205,6 +212,8 @@ docker-compose restart frontend
   - Authentication flow with protected routes
   - Project management interface
   - GitHub repository integration
+  - System health status monitoring
+  - Reusable UI components (Navigation, Health Status)
   - Real-time notifications
   - Form validation
   - Responsive design
@@ -350,8 +359,17 @@ docker-compose up -d --build
 The application follows a modular architecture:
 
 - **Database Layer**: Hybrid approach with MongoDB for projects and PostgreSQL for users
-- **Backend Layer**: Modular Express.js with separated concerns (routes, middleware, models, services)
-- **Frontend Layer**: React.js with TypeScript, organized by features (pages, components, contexts)
+- **Backend Layer**: Modular Express.js with separated concerns:
+  - **Routes**: Centralized route registration with feature-based handlers
+  - **Middleware**: Authentication, CORS, error handling, and 404 handling
+  - **Models**: Data models for users (PostgreSQL) and projects (MongoDB)
+  - **Services**: Business logic services (GitHub API integration)
+  - **Utils**: Utility functions (graceful shutdown)
+  - **DB Connectors**: Database connection management
+- **Frontend Layer**: React.js with TypeScript, organized by features:
+  - **Pages**: Main page components (Auth, Dashboard)
+  - **Components**: Reusable UI components
+  - **Contexts**: React context providers (Authentication)
 - **Container Layer**: Docker Compose for easy deployment and development
 
 ## 🤝 Contributing
