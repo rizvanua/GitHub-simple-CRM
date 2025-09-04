@@ -113,7 +113,6 @@ GitHub-simple-CRM/
 
 ### 📊 Project Management
 - Create, read, update, delete projects
-- User-specific project filtering
 - Project metadata storage
 
 ### 🔗 GitHub Integration
@@ -289,15 +288,7 @@ SELECT * FROM users;
 
 ## 🛡️ Security Notes
 
-⚠️ **Important**: This is a development setup. For production:
-
-1. Change all default passwords
-2. Use environment variables for sensitive data
-3. Enable SSL/TLS
-4. Implement proper authentication
-5. Use secrets management
-6. Configure firewall rules
-7. Set up proper CORS configuration
+⚠️ **Important**: This setup is for development and learning purposes only. Do not use it in production.
 
 ## 🔧 Development
 
