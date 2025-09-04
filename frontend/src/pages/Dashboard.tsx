@@ -70,9 +70,8 @@ const Dashboard: React.FC = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* System Status */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">System Status</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">System  Health Status</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <span className="font-medium">MongoDB</span>
@@ -88,8 +87,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* GitHub Repository Form */}
+          
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-900">GitHub Integration</h2>
