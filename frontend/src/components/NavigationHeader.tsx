@@ -7,7 +7,7 @@ interface NavigationHeaderProps {
 }
 
 const NavigationHeader: React.FC<NavigationHeaderProps> = ({ 
-  title = "🚀 GitHub Project Manager" 
+  title = "GitHub Project Manager" 
 }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
