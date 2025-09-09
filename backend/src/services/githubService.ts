@@ -34,7 +34,9 @@ export interface RepositoryData {
   isPrivate?: boolean;
   isArchived?: boolean;
   isDisabled?: boolean;
+  aiComment?: string;
 }
+import { aiService } from './aiService';
 
 export class GitHubService {
   private baseUrl = 'https://api.github.com';
@@ -67,6 +69,19 @@ export class GitHubService {
 
       const repo = await response.json() as GitHubRepository;
 
+
+      const aiComment = await aiService.generateProjectComment({
+        repositoryName: repo.name,
+        owner: repo.owner.login,
+        description: repo.description,
+        language: repo.language,
+        stars: repo.stargazers_count,
+        forks: repo.forks_count,
+        openIssues: repo.open_issues_count,
+        isPrivate: repo.private,
+        isArchived: repo.archived
+      });
+
       return {
         owner: repo.owner.login,
         name: repo.name,
@@ -81,7 +96,8 @@ export class GitHubService {
         defaultBranch: repo.default_branch,
         isPrivate: repo.private,
         isArchived: repo.archived,
-        isDisabled: repo.disabled
+        isDisabled: repo.disabled,
+        aiComment: aiComment
       };
     } catch (error) {
       if (error instanceof Error) {

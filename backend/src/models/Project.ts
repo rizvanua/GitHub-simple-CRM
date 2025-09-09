@@ -8,6 +8,7 @@ export interface IProject extends Document {
   forks: number;
   openIssues: number;
   createdAt: number; // UTC Unix timestamp
+  aiComment?: string; // AI-generated comment about the project
   githubPath?: string; // GitHub repository path (e.g., "facebook/react")
   userId: number; // PostgreSQL user ID
   createdAtAt: Date;
@@ -57,6 +58,11 @@ const projectSchema = new Schema<IProject>({
     type: String,
     trim: true,
     sparse: true
+  },
+  aiComment: {
+    type: String,
+    trim: true,
+    maxlength: 500 // Limit AI comment length
   },
   userId: {
     type: Number,
